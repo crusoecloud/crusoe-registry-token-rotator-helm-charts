@@ -1,0 +1,62 @@
+{{- if not .Values.targetSecret.namespaces }}
+{{ fail "You must set .Values.targetSecret.namespaces to at least one namespace." }}
+{{- end }}
+{{- if or (not .Values.targetSecret.registryUrl) (eq .Values.targetSecret.registryUrl "") }}
+{{ fail "You must set .Values.targetSecret.registryUrl to a non-empty value." }}
+{{- end }}
+{{- if or (not .Values.targetSecret.registryUsername) (eq .Values.targetSecret.registryUsername "") }}
+{{ fail "You must set .Values.targetSecret.registryUsername to a non-empty value." }}
+{{- end }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "crusoe-registry-token-rotator.selectorLabels" . | nindent 12 }}
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "crusoe-registry-token-rotator.serviceAccountName" . }}
+          restartPolicy: OnFailure
+          containers:
+            - name: token-rotator
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              securityContext:
+                allowPrivilegeEscalation: false
+              env:
+                - name: CRUSOE_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.crusoeCredentialsSecretName }}
+                      key: CRUSOE_ACCESS_KEY
+                - name: CRUSOE_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.crusoeCredentialsSecretName }}
+                      key: CRUSOE_SECRET_KEY
+                - name: TARGET_NAMESPACE
+                  value: {{ .Values.targetSecret.namespaces | join "," | quote }}
+                - name: TARGET_SECRET_NAME
+                  value: {{ .Values.targetSecret.name | quote }}
+                - name: TOKEN_EXIPIRATION_HOURS
+                  value: {{ .Values.token.expirationHours | quote }}
+                - name: TOKEN_ALIAS
+                  value: {{ .Values.token.alias | quote }}
+                - name: REGISTRY_URL
+                  value: {{ .Values.targetSecret.registryUrl | quote }}
+                - name: REGISTRY_USERNAME
+                  value: {{ .Values.targetSecret.registryUsername | quote }}
