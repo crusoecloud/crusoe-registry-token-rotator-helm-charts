@@ -1,5 +1,5 @@
 # Use a lightweight base image with Python
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 # Create non-root user
 RUN useradd -m tokenrotator
