@@ -25,10 +25,6 @@ spec:
           labels:
             {{- include "crusoe-registry-token-rotator.selectorLabels" . | nindent 12 }}
         spec:
-          {{- with .Values.imagePullSecrets }}
-          imagePullSecrets:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           serviceAccountName: {{ include "crusoe-registry-token-rotator.serviceAccountName" . }}
           restartPolicy: OnFailure
           containers:

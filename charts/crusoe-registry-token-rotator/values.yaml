@@ -3,7 +3,6 @@ image:
   repository: ghcr.io/crusoecloud/crusoe-registry-token-rotator
   tag: "latest"
   pullPolicy: Always
-  imagePullSecrets: []
 
 
 # -- Override the full name of resources created by this chart
