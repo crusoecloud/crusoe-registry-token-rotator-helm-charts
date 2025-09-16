@@ -8,12 +8,6 @@ on:
       - 'charts/**'
       - 'cr.yaml'
       - '.github/workflows/release.yaml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'charts/**'
-      - 'cr.yaml'
-      - '.github/workflows/release.yaml'
 
 jobs:
   release:
