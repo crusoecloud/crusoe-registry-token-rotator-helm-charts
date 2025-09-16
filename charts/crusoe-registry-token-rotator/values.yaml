@@ -1,0 +1,58 @@
+# -- Image configuration for the token rotation container
+image:
+  repository: ghcr.io/crusoecloud/crusoe-registry-token-rotator
+  tag: "latest"
+  pullPolicy: Always
+
+
+# -- Override the full name of resources created by this chart
+fullnameOverride: ""
+# -- Override the base name of resources created by this chart
+nameOverride: ""
+
+# -- Schedule to run the job. Default is every 30 days at 1 AM UTC.
+# See https://crontab.guru/ for help with cron syntax.
+schedule: "0 */6 * * *"
+successfulJobsHistoryLimit: 3
+failedJobsHistoryLimit: 1
+# -- Namespace where the CronJob and its ServiceAccount/Role will be created
+namespace: "crusoe-system"
+# -- Resource requests and limits for the CronJob container
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# -- RBAC configuration
+rbac:
+  # -- If true, create a dedicated ServiceAccount, Role, and RoleBinding.
+  create: true
+  serviceAccount:
+    # -- The name of the ServiceAccount to use. If not set, a name is generated.
+    name: ""
+
+# -- Crusoe credentials secret name (must contain CRUSOE_ACCESS_KEY and CRUSOE_SECRET_KEY)
+crusoeCredentialsSecretName: "crusoe-secrets"
+
+# -- Configuration for the token generation script
+token:
+  # -- The lifetime of the generated token in days.
+  # The cron schedule should be less than this to ensure an overlap.
+  expirationHours: 12
+  # -- An alias for the token created in the Crusoe UI
+  alias: "k8s-cronjob-token-api"
+
+# -- The target secret that will be created or updated with the token
+targetSecret:
+  # -- The name of the secret that will store the generated PAT token.
+  name: "crusoe-image-pull-secrets"
+  # -- The namespaces (list) where the secret will be created/updated. If empty, defaults to ["default"].
+  namespaces:
+    - "default"
+  # -- The container registry URL for this secret
+  registryUrl: "registry.us-southcentral1-a.ccr.crusoecloudcompute.com"
+  # -- The registry username for this secret
+  registryUsername: "managed-platform-services@crusoe.ai"
