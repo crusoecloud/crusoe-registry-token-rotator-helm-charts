@@ -4,7 +4,6 @@ image:
   tag: "latest"
   pullPolicy: Always
 
-
 # -- Override the full name of resources created by this chart
 fullnameOverride: ""
 # -- Override the base name of resources created by this chart
