@@ -1,8 +1,0 @@
-include:
-  - project: 'crusoeenergy/tools'
-    file: '/templates/go.gitlab-ci.yml'
-  - '/versions.yml'
-
-variables: # TODO(template) update these if you have go submodules
-  TAG_PREFIX: ""
-  CI_IMAGE: "registry.gitlab.com/crusoeenergy/tools/go-ci-1.21"
