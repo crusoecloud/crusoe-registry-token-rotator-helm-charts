@@ -8,11 +8,6 @@ on:
       - 'charts/**'
       - 'cr.yaml'        # if this file is part of your chart release process
       - '.github/workflows/release.yaml'  # if you want workflow changes to trigger a release
-  pull_request: #TODO remove after testing
-    paths:
-      - 'charts/**'
-      - 'cr.yaml'
-      - '.github/workflows/release.yaml'
 
 jobs:
   release:
