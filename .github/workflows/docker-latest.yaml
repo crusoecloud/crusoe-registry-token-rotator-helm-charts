@@ -7,7 +7,6 @@ on:
       - 'rotate_token_api.py'
       - 'Dockerfile'
       - 'requirements.txt'
-
   pull_request:
     branches: [main]
     paths:
