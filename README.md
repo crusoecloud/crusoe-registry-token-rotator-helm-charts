@@ -27,19 +27,19 @@ rotation of tokens for use with private container registries, improving security
 
 ## Namespace and Credentials Secret (Required for non-CMK clusters)
 
-On Crusoe Managed Kubernetes (CMK) clusters, both the `crusoe-secrets` namespace and the `crusoe-credentials` secret are
+On Crusoe Managed Kubernetes (CMK) clusters, both the `crusoe-system` namespace and the `crusoe-credentials` secret are
 created automatically. The cronjob will use the `crusoe-credentials` secret to authenticate to the Crusoe API and will be deployed in `crusoe-system` namespace. If you choose to use another namespace for the cronjob, you must manually create the `crusoe-credentials` secret in that namespace.
 
 **For non-CMK clusters:**  
 You must manually create both the namespace and the credentials secret before installing the chart:
 
 ```sh
-kubectl create namespace crusoe-secrets
+kubectl create namespace crusoe-system
 
 kubectl create secret generic crusoe-credentials \
   --from-literal=CRUSOE_ACCESS_KEY=<your-access-key> \
   --from-literal=CRUSOE_SECRET_KEY=<your-secret-key> \
-  -n crusoe-secrets
+  -n crusoe-system
 ```
 
 ## Installation
@@ -80,8 +80,7 @@ kubectl create secret generic crusoe-credentials \
    ```sh
    helm dependency update charts/crusoe-registry-token-rotator
    helm install crusoe-registry-token-rotator ./charts/crusoe-registry-token-rotator \
-     --namespace crusoe-system \
-     --create-namespace
+     --namespace crusoe-system
    ```
    Or to upgrade:
    ```sh
@@ -92,8 +91,7 @@ kubectl create secret generic crusoe-credentials \
    **Or, if you want to install from a packaged chart:**
    ```sh
    helm install crusoe-registry-token-rotator ./crusoe-registry-token-rotator-<version>.tgz \
-     --namespace crusoe-system \
-     --create-namespace
+     --namespace crusoe-system
    ```
    Or to upgrade:
    ```sh
@@ -103,11 +101,10 @@ kubectl create secret generic crusoe-credentials \
 
    **Or, if the chart is published to a Helm repo (e.g., GitHub Pages):**
    ```sh
-   helm repo add crusoecloud https://crusoecloud.github.io/crusoe-registry-token-rotator-helm-charts
+   helm repo add crusoecloud https://crusoecloud.github.io/crusoe-registry-token-rotator-helm-charts/charts
    helm repo update
    helm install crusoe-registry-token-rotator crusoecloud/crusoe-registry-token-rotator \
-     --namespace crusoe-system \
-     --create-namespace
+     --namespace crusoe-system
    ```
    Or to upgrade:
    ```sh
