@@ -52,6 +52,6 @@ targetSecret:
   namespaces:
     - "default"
   # -- The container registry URL for this secret
-  registryUrl: "registry.us-southcentral1-a.ccr.crusoecloudcompute.com"
+  registryUrl: ""
   # -- The registry username for this secret
-  registryUsername: "managed-platform-services@crusoe.ai"
+  registryUsername: ""
