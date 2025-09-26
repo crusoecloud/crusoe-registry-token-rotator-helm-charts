@@ -27,10 +27,10 @@ rotation of tokens for use with private container registries, improving security
 
 ## Namespace and Credentials Secret (Required for non-CMK clusters)
 
-On Crusoe Managed Kubernetes (CMK) clusters, both the `crusoe-system` namespace and the `crusoe-credentials` secret are
-created automatically. The cronjob will use the `crusoe-credentials` secret to authenticate to the Crusoe API and will
+On Crusoe Managed Kubernetes (CMK) clusters, both the `crusoe-system` namespace and the `crusoe-secrets` secret are
+created automatically. The cronjob will use the `crusoe-secrets` secret to authenticate to the Crusoe API and will
 be deployed in `crusoe-system` namespace. If you choose to use another namespace for the cronjob, you must manually
-create the `crusoe-credentials` secret in that namespace.
+create the `crusoe-secrets` secret in that namespace.
 
 **For non-CMK clusters:**  
 You must manually create both the namespace and the credentials secret before installing the chart:
@@ -38,7 +38,7 @@ You must manually create both the namespace and the credentials secret before in
 ```sh
 kubectl create namespace crusoe-system
 
-kubectl create secret generic crusoe-credentials \
+kubectl create secret generic crusoe-secrets \
   --from-literal=CRUSOE_ACCESS_KEY=<your-access-key> \
   --from-literal=CRUSOE_SECRET_KEY=<your-secret-key> \
   -n crusoe-system
@@ -80,7 +80,7 @@ kubectl config use-context <your-context-name>
        - <namespace2>
      registryUrl: "<crusoe-registry-url>"
      registryUsername: "<crusoe-registry-username>"
-   crusoeCredentialsSecretName: crusoe-credentials
+   crusoeCredentialsSecretName: crusoe-secrets
    schedule: "0 */6 * * *"
    successfulJobsHistoryLimit: 3
    failedJobsHistoryLimit: 1
