@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}
+  labels:
+    {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "crusoe-registry-token-rotator.serviceAccountName" . }}
+    namespace: {{ .Values.namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io

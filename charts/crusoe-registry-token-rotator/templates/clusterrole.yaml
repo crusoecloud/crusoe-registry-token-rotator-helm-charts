@@ -1,0 +1,23 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}
+  labels:
+    {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - "secrets"
+    verbs:
+      - "create"
+  - apiGroups:
+      - ""
+    resources:
+      - "secrets"
+    verbs:
+      - "get"
+      - "update"
+      - "patch"
+    resourceNames:
+      - {{ .Values.targetSecret.name | quote }}
