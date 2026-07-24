@@ -14,11 +14,12 @@ metadata:
   labels:
     {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
 rules:
-  # This role grants permission to get the Crusoe credentials secret
-  # and to manage the target PAT token secret.
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get"]
+  - apiGroups:
+      - ""
+    resources:
+      - "secrets"
+    verbs:
+      - "get"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -37,34 +38,49 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 
 ---
-# Create Role/RoleBinding in each target namespace
-{{- range $ns := .Values.targetSecret.namespaces }}
+# Cluster-wide permission to manage the target PAT secret in any namespace.
+# A single ClusterRole/ClusterRoleBinding is used instead of a Role/RoleBinding
+# per target namespace so the chart does not scale linearly with the number of
+# namespaces.
+#
+# `create` cannot be constrained by resourceNames (the object name is unknown
+# at admission time), so it is granted unbounded. `get`/`update`/`patch` are
+# limited to the configured target secret name.
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $ns }}
-  namespace: {{ $ns }}
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}
   labels:
-    {{- include "crusoe-registry-token-rotator.labels" $ | nindent 4 }}
+    {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
 rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get", "create", "update", "patch"]
+  - apiGroups:
+      - ""
+    resources:
+      - "secrets"
+    verbs:
+      - "create"
+  - apiGroups:
+      - ""
+    resources:
+      - "secrets"
+    verbs:
+      - "get"
+      - "update"
+      - "patch"
+    resourceNames:
+      - {{ .Values.targetSecret.name | quote }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $ns }}
-  namespace: {{ $ns }}
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}
   labels:
-    {{- include "crusoe-registry-token-rotator.labels" $ | nindent 4 }}
+    {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "crusoe-registry-token-rotator.serviceAccountName" $ }}
-    namespace: {{ $.Values.namespace }}
+    name: {{ include "crusoe-registry-token-rotator.serviceAccountName" . }}
+    namespace: {{ .Values.namespace }}
 roleRef:
-  kind: Role
-  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $ns }}
+  kind: ClusterRole
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
----
-{{- end }}
