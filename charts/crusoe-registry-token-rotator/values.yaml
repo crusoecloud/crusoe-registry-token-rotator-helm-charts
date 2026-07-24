@@ -14,8 +14,6 @@ nameOverride: ""
 schedule: "0 */6 * * *"
 successfulJobsHistoryLimit: 3
 failedJobsHistoryLimit: 1
-# -- Namespace where the CronJob and its ServiceAccount/Role will be created
-namespace: "crusoe-system"
 # -- Resource requests and limits for the CronJob container
 resources:
   limits:
