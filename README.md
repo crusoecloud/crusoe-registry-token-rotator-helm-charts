@@ -139,17 +139,19 @@ kubectl config use-context <your-context-name>
 
 All configuration is via `values.yaml`. Key options:
 
-| Parameter                       | Description                                          | Default                                             |
-|---------------------------------|------------------------------------------------------|-----------------------------------------------------|
-| `image.repository`              | Image repository for the registry token rotator app  | `ghcr.io/crusoecloud/crusoe-registry-token-rotator` |
-| `image.tag`                     | Image tag                                            | `latest`                                            |
-| `namespace`                     | Namespace where the CronJob will be created          | `crusoe-system`                                     |
-| `targetSecret.name`             | Name of the Kubernetes secret to manage              | `crusoe-image-pull-secrets`                         |
-| `targetSecret.namespaces`       | List of namespaces to update/create the secret in    | `default`                                            |
-| `targetSecret.registryUrl`      | Crusoe Registry URL for the secret                   |                                                     |
-| `targetSecret.registryUsername` | Crusoe Registry username for the secret              |                                                     |
-| `crusoeCredentialsSecretName`   | Name of the secret containing Crusoe API credentials | `crusoe-secrets`                                    |
-| `schedule`                      | Cron schedule for rotation job                       | `0 */6 * * *`                                       |
+| Parameter                       | Description                                                   | Default                                             |
+|---------------------------------|---------------------------------------------------------------|-----------------------------------------------------|
+| `image.repository`              | Image repository for the registry token rotator app           | `ghcr.io/crusoecloud/crusoe-registry-token-rotator` |
+| `image.tag`                     | Image tag                                                     | `latest`                                            |
+| `serviceAccount.create`         | Create the service account. If false, it must already exist   | `true`                                              |
+| `serviceAccount.name`           | Service account name. If empty, derived from the release name | `""`                                                |
+| `rbac.create`                   | Create RBAC resources. If false, they must already exist      | `true`                                              |
+| `targetSecret.name`             | Name of the Kubernetes secret to manage                       | `crusoe-image-pull-secrets`                         |
+| `targetSecret.namespaces`       | List of namespaces to update/create the secret in             | `default`                                           |
+| `targetSecret.registryUrl`      | Crusoe Registry URL for the secret                            |                                                     |
+| `targetSecret.registryUsername` | Crusoe Registry username for the secret                       |                                                     |
+| `crusoeCredentialsSecretName`   | Name of the secret containing Crusoe API credentials          | `crusoe-secrets`                                    |
+| `schedule`                      | Cron schedule for rotation job                                | `0 */6 * * *`                                       |
 
 ## Usage
 
@@ -165,16 +167,25 @@ All configuration is via `values.yaml`. Key options:
 
 ### Permissions on Kubernetes Secrets
 
-The Crusoe Registry Token Rotator requires permissions to manage Kubernetes Secrets in each of the namespaces you
-specify in `targetSecret.namespaces`. Specifically, the application is granted the following permissions on secrets:
+The rotator needs permission to manage Kubernetes Secrets in the namespaces listed in `targetSecret.namespaces`. A
+single cluster-scoped `ClusterRole` and `ClusterRoleBinding` grant it, so the resource count stays flat as you add
+namespaces. One `Role` per namespace would grow with the list. The permissions on secrets:
 
-- **GET**: Read existing secrets to check their current state.
-- **CREATE**: Create new secrets if they do not exist.
-- **UPDATE**: Update existing secrets with new token data.
-- **PATCH**: Partially update secrets as needed.
+- **create**: cluster-wide and unrestricted, because Kubernetes RBAC cannot scope `create` to a named resource (the
+  object does not exist yet when the request is checked).
+- **get**, **update**, **patch**: restricted via `resourceNames` to the one secret named in `targetSecret.name`.
 
-These permissions are granted via Kubernetes RBAC roles and are necessary for the app to rotate and manage registry
-credentials securely and automatically.
+A namespaced `Role` and `RoleBinding` in the release namespace grant `get` on the Crusoe credentials secret
+(`crusoeCredentialsSecretName`).
+
+Two switches control what the chart creates:
+
+- `serviceAccount.create` (default `true`): create the ServiceAccount. Set it to `false` to reuse an existing
+  account named in `serviceAccount.name`. The name never falls back to `default`. When `serviceAccount.name` is
+  empty the chart derives a name from the release, so with `create: false` an account under that name must already
+  exist.
+- `rbac.create` (default `true`): create the Role, RoleBinding, ClusterRole, and ClusterRoleBinding. Set it to
+  `false` when a cluster admin applies the RBAC separately.
 
 ## Development
 
