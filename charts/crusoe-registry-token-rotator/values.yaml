@@ -23,13 +23,21 @@ resources:
     cpu: 50m
     memory: 64Mi
 
-# -- RBAC configuration
-rbac:
-  # -- If true, create a dedicated ServiceAccount, Role, and RoleBinding.
+# -- Service account configuration
+serviceAccount:
+  # -- If true, create a dedicated service account.
+  # If false, it must already exist under the name below
+  # (or the generated name when that is empty).
   create: true
-  serviceAccount:
-    # -- The name of the ServiceAccount to use. If not set, a name is generated.
-    name: ""
+  # -- Name of the service account. If empty, a name is derived from the release.
+  name: ""
+
+# -- RBAC for managing the target secret: a Role(Binding)
+# in the release namespace plus a cluster-scoped ClusterRole(Binding)
+rbac:
+  # -- If true, create the resources for RBAC.
+  # If false, they must already exist.
+  create: true
 
 # -- Crusoe credentials secret name (must contain CRUSOE_ACCESS_KEY and CRUSOE_SECRET_KEY)
 crusoeCredentialsSecretName: "crusoe-secrets"

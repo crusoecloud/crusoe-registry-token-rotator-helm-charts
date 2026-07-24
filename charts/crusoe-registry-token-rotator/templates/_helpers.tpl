@@ -54,9 +54,5 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "crusoe-registry-token-rotator.serviceAccountName" -}}
-{{- if .Values.rbac.create }}
-{{- .Values.rbac.serviceAccount.name | default (include "crusoe-registry-token-rotator.fullname" .) }}
-{{- else }}
-{{- .Values.rbac.serviceAccount.name | default "default" }}
-{{- end }}
+{{- default (include "crusoe-registry-token-rotator.fullname" .) .Values.serviceAccount.name }}
 {{- end }}
