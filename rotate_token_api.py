@@ -104,7 +104,7 @@ def update_k8s_secret(namespace, secret_name, registry_url, username, new_token)
         if e.status == 404:
             logging.info(f"Secret '{secret_name}' not found. Creating...")
             api.create_namespaced_secret(namespace=namespace, body=secret_body)
-            logging.info("Secret created successfully in namespace '{namespace}'.")
+            logging.info(f"Secret created successfully in namespace '{namespace}'.")
         else:
             logging.error(f"Kubernetes API Error: {e}")
             sys.exit(1)
