@@ -44,7 +44,7 @@ crusoeCredentialsSecretName: "crusoe-secrets"
 
 # -- Configuration for the token generation script
 token:
-  # -- The lifetime of the generated token in days.
+  # -- The lifetime of the generated token in hours.
   # The cron schedule should be less than this to ensure an overlap.
   expirationHours: 12
   # -- An alias for the token created in the Crusoe UI

@@ -48,7 +48,7 @@ spec:
                   value: {{ .Values.targetSecret.namespaces | join "," | quote }}
                 - name: TARGET_SECRET_NAME
                   value: {{ .Values.targetSecret.name | quote }}
-                - name: TOKEN_EXIPIRATION_HOURS
+                - name: TOKEN_EXPIRATION_HOURS
                   value: {{ .Values.token.expirationHours | quote }}
                 - name: TOKEN_ALIAS
                   value: {{ .Values.token.alias | quote }}
