@@ -1,0 +1,39 @@
+
+name: release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'charts/**'
+      - 'cr.yaml'
+      - '.github/workflows/release.yaml'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config user.name "crusoe-cloud"
+          git config user.email "support@crusoecloud.com"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.11.2
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
+        with:
+          charts_dir: charts
+          config: cr.yaml
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
