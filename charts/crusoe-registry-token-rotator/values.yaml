@@ -1,11 +1,8 @@
 # -- Image configuration for the token rotation container
 image:
-  repository: registry.gitlab.com/crusoeenergy/island/managed-platform-services/ccr/crusoe-registry-token-rotator
+  repository: ghcr.io/crusoecloud/crusoe-registry-token-rotator
   tag: "latest"
-  pullPolicy: IfNotPresent
-#TODO: Remove imagePullSecrets for public github repo
-imagePullSecrets:
-  - name: gitlab
+  pullPolicy: Always
 
 # -- Override the full name of resources created by this chart
 fullnameOverride: ""
@@ -41,7 +38,7 @@ crusoeCredentialsSecretName: "crusoe-secrets"
 
 # -- Configuration for the token generation script
 token:
-  # -- The lifetime of the generated token in days.
+  # -- The lifetime of the generated token in hours.
   # The cron schedule should be less than this to ensure an overlap.
   expirationHours: 12
   # -- An alias for the token created in the Crusoe UI
@@ -52,10 +49,9 @@ targetSecret:
   # -- The name of the secret that will store the generated PAT token.
   name: "crusoe-image-pull-secrets"
   # -- The namespaces (list) where the secret will be created/updated. If empty, defaults to ["default"].
-  #TODO: update defaults
   namespaces:
     - "default"
   # -- The container registry URL for this secret
-  registryUrl: "registry.us-southcentral1-a.ccr.crusoecloudcompute.com"
+  registryUrl: ""
   # -- The registry username for this secret
-  registryUsername: "managed-platform-services@crusoe.ai"
+  registryUsername: ""
