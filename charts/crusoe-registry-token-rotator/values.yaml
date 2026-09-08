@@ -27,7 +27,10 @@ resources:
 
 # -- RBAC configuration
 rbac:
-  # -- If true, create a dedicated ServiceAccount, Role, and RoleBinding.
+  # -- If true, create the ServiceAccount plus a Role and RoleBinding in every
+  # namespace listed in targetSecret.namespaces. If false, none of them are
+  # created and serviceAccount.name below must name an account you have bound
+  # yourself.
   create: true
   serviceAccount:
     # -- The name of the ServiceAccount to use. If not set, a name is generated.

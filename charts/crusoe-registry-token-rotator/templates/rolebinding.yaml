@@ -1,0 +1,20 @@
+{{- if .Values.rbac.create }}
+{{- range $ns := .Values.targetSecret.namespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $ns }}
+  namespace: {{ $ns }}
+  labels:
+    {{- include "crusoe-registry-token-rotator.labels" $ | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "crusoe-registry-token-rotator.serviceAccountName" $ }}
+    namespace: {{ $.Values.namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $ns }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}

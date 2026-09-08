@@ -143,6 +143,8 @@ All configuration is via `values.yaml`. Key options:
 |---------------------------------|------------------------------------------------------|-----------------------------------------------------|
 | `image.repository`              | Image repository for the registry token rotator app  | `ghcr.io/crusoecloud/crusoe-registry-token-rotator` |
 | `image.tag`                     | Image tag                                            | `latest`                                            |
+| `rbac.create`                   | Create the ServiceAccount, Roles and RoleBindings    | `true`                                              |
+| `rbac.serviceAccount.name`      | ServiceAccount name. If empty, derived from release  | `""`                                                |
 | `namespace`                     | Namespace where the CronJob will be created          | `crusoe-system`                                     |
 | `targetSecret.name`             | Name of the Kubernetes secret to manage              | `crusoe-image-pull-secrets`                         |
 | `targetSecret.namespaces`       | List of namespaces to update/create the secret in    | `default`                                            |
@@ -165,16 +167,23 @@ All configuration is via `values.yaml`. Key options:
 
 ### Permissions on Kubernetes Secrets
 
-The Crusoe Registry Token Rotator requires permissions to manage Kubernetes Secrets in each of the namespaces you
-specify in `targetSecret.namespaces`. Specifically, the application is granted the following permissions on secrets:
+The rotator manages a single secret, the one named in `targetSecret.name`, in each namespace listed in
+`targetSecret.namespaces`. A `Role` and `RoleBinding` are created in each of those namespaces granting:
 
-- **GET**: Read existing secrets to check their current state.
-- **CREATE**: Create new secrets if they do not exist.
-- **UPDATE**: Update existing secrets with new token data.
-- **PATCH**: Partially update secrets as needed.
+- **create**: unscoped, because Kubernetes RBAC cannot restrict `create` by resource name. The object does not
+  exist yet when the request is authorized.
+- **get**, **update**, **patch**: restricted via `resourceNames` to `targetSecret.name`. The rotator cannot read or
+  modify any other secret.
 
-These permissions are granted via Kubernetes RBAC roles and are necessary for the app to rotate and manage registry
-credentials securely and automatically.
+No permissions are granted in the deployment namespace. The Crusoe API credentials reach the pod through
+`secretKeyRef`, which the kubelet resolves, so the ServiceAccount never reads that secret through the Kubernetes API
+and needs no access to it.
+
+The CronJob runs as a dedicated ServiceAccount. It never falls back to the namespace's `default` ServiceAccount,
+which would otherwise extend these permissions to every pod using that account.
+
+Set `rbac.create: false` to manage RBAC yourself. The chart then creates no ServiceAccount, Role or RoleBinding, and
+you must set `rbac.serviceAccount.name` to an account you have already bound; rendering fails if you do not.
 
 ## Development
 
