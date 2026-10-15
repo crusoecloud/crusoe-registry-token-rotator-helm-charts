@@ -11,7 +11,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "crusoe-registry-token-rotator.fullname" . }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ include "crusoe-registry-token-rotator.namespace" . }}
   labels:
     {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
 spec:

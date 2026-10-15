@@ -1,0 +1,36 @@
+{{ include "crusoe-registry-token-rotator.fullname" . }} is installed in namespace {{ include "crusoe-registry-token-rotator.namespace" . }}.
+
+The rotator writes {{ .Values.targetSecret.name | quote }} into: {{ .Values.targetSecret.namespaces | join ", " }}
+Schedule: {{ .Values.schedule }}
+
+Trigger a run now:
+  kubectl create job --from=cronjob/{{ include "crusoe-registry-token-rotator.fullname" . }} {{ include "crusoe-registry-token-rotator.fullname" . }}-manual -n {{ include "crusoe-registry-token-rotator.namespace" . }}
+{{- $rbac := .Values.rbac | default dict }}
+{{- $legacyName := ($rbac.serviceAccount | default dict).name }}
+{{- if or (not (kindIs "invalid" $rbac.create)) $legacyName (.Values.namespace) }}
+
+############################################################
+# DEPRECATED VALUES IN USE
+#
+# These keys are removed in 2.0.0, where setting them will
+# fail the render rather than being ignored.
+############################################################
+{{- if not (kindIs "invalid" $rbac.create) }}
+#
+#   rbac.create            ->  serviceAccount.create
+#   currently set to {{ $rbac.create }}, overriding serviceAccount.create
+{{- end }}
+{{- if $legacyName }}
+#
+#   rbac.serviceAccount.name  ->  serviceAccount.name
+#   currently set to {{ $legacyName | quote }}, overriding serviceAccount.name
+{{- end }}
+{{- if .Values.namespace }}
+#
+#   namespace              ->  helm --namespace
+#   currently set to {{ .Values.namespace | quote }}. Resources install into the
+#   release namespace. Drop this key; it only agrees today by coincidence.
+{{- end }}
+#
+############################################################
+{{- end }}

@@ -14,8 +14,11 @@ nameOverride: ""
 schedule: "0 */6 * * *"
 successfulJobsHistoryLimit: 3
 failedJobsHistoryLimit: 1
-# -- Namespace where the CronJob and its ServiceAccount/Role will be created
-namespace: "crusoe-system"
+# -- DEPRECATED. Resources are installed into the release namespace; use
+# "helm install --namespace" instead. Leave empty. If set to anything other
+# than the release namespace, rendering fails rather than relocating your
+# resources silently. This key is removed in 2.0.0.
+namespace: ""
 # -- Resource requests and limits for the CronJob container
 resources:
   limits:
@@ -25,16 +28,23 @@ resources:
     cpu: 50m
     memory: 64Mi
 
-# -- RBAC configuration
-rbac:
-  # -- If true, create the ServiceAccount plus a Role and RoleBinding in every
-  # namespace listed in targetSecret.namespaces. If false, none of them are
-  # created and serviceAccount.name below must name an account you have bound
-  # yourself.
+# -- Service account and RBAC configuration
+serviceAccount:
+  # -- If true, create the ServiceAccount plus the ClusterRole and a RoleBinding
+  # in every namespace listed in targetSecret.namespaces. If false, none of them
+  # are created and name below must identify an account you have bound yourself.
   create: true
+  # -- The name of the ServiceAccount to use. If empty, a name is derived from
+  # the release.
+  name: ""
+
+# -- DEPRECATED. Use serviceAccount.create and serviceAccount.name instead.
+# These keys still take effect when set, and override the ones above, but they
+# are removed in 2.0.0. Leave them unset.
+rbac:
+  create: null
   serviceAccount:
-    # -- The name of the ServiceAccount to use. If not set, a name is generated.
-    name: ""
+    name: null
 
 # -- Crusoe credentials secret name (must contain CRUSOE_ACCESS_KEY and CRUSOE_SECRET_KEY)
 crusoeCredentialsSecretName: "crusoe-secrets"
