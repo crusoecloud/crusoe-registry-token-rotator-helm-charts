@@ -168,7 +168,9 @@ All configuration is via `values.yaml`. Key options:
 ### Permissions on Kubernetes Secrets
 
 The rotator manages a single secret, the one named in `targetSecret.name`, in each namespace listed in
-`targetSecret.namespaces`. A `Role` and `RoleBinding` are created in each of those namespaces granting:
+`targetSecret.namespaces`. The permissions are defined once in a `ClusterRole` and granted by one
+`RoleBinding` per target namespace. A RoleBinding that references a ClusterRole applies only inside its own
+namespace, so the rotator's access stays limited to the namespaces you configure. The permissions granted are:
 
 - **create**: unscoped, because Kubernetes RBAC cannot restrict `create` by resource name. The object does not
   exist yet when the request is authorized.
@@ -182,8 +184,12 @@ and needs no access to it.
 The CronJob runs as a dedicated ServiceAccount. It never falls back to the namespace's `default` ServiceAccount,
 which would otherwise extend these permissions to every pod using that account.
 
-Set `rbac.create: false` to manage RBAC yourself. The chart then creates no ServiceAccount, Role or RoleBinding, and
-you must set `rbac.serviceAccount.name` to an account you have already bound; rendering fails if you do not.
+The `ClusterRole` is a cluster-scoped object, so installing the chart requires permission to create one. Its name
+includes the release namespace, so two releases of this chart can coexist in one cluster.
+
+Set `rbac.create: false` to manage RBAC yourself. The chart then creates no ServiceAccount, ClusterRole or
+RoleBinding, and you must set `rbac.serviceAccount.name` to an account you have already bound; rendering fails
+if you do not.
 
 ## Development
 
