@@ -1,30 +1,50 @@
 ## What changed
 
-The chart now defines its Secret permissions once in a `ClusterRole` and grants them with one
-`RoleBinding` per target namespace, instead of copying an identical `Role` into every namespace.
+Three values are renamed. **The old names still work**, and still take precedence when set, but
+the chart now prints a warning naming each one, and they are removed in 2.0.0.
 
-**What the rotator can access is unchanged.** A RoleBinding that references a ClusterRole applies
-only inside its own namespace, so access stays limited to the namespaces listed in
-`targetSecret.namespaces`. It still manages only the single secret named in `targetSecret.name`.
+| Deprecated | Replacement |
+|------------|-------------|
+| `rbac.create` | `serviceAccount.create` |
+| `rbac.serviceAccount.name` | `serviceAccount.name` |
+| `namespace` | `helm install --namespace` |
 
-The benefit is scale. Objects created go from `2 + 2n` to `3 + n` for `n` target namespaces. At 50
-namespaces a `helm upgrade` drops from roughly 77s to 38s.
+Resources now install into the release namespace, the one you pass to Helm, rather than
+`.Values.namespace`.
+
+No Kubernetes object names change in this release.
 
 ## Before you upgrade
 
-**Installing now requires permission to create a `ClusterRole`.** If your cluster restricts
-cluster-scoped RBAC, or runs an admission policy that blocks charts from creating it, set
-`rbac.create: false`, have an administrator apply the RBAC separately, and point
-`rbac.serviceAccount.name` at the ServiceAccount you created.
+If you set `namespace` to something different from the namespace you pass to Helm, **the upgrade
+will refuse to run** and print migration instructions. This is deliberate. Helm cannot move
+objects between namespaces during an upgrade, so proceeding would silently delete your resources
+and recreate them elsewhere.
 
-The per-namespace `RoleBinding` objects are renamed, so the upgrade replaces them rather than
-patching them. This is required: `roleRef` is immutable in Kubernetes, so an existing binding
-cannot be repointed at a ClusterRole in place.
+If you installed the documented way, with `--namespace crusoe-system`, nothing changes and you can
+simply drop the key from your values.
 
 ## Impact on running workloads
 
 None. The chart does not touch the image pull secret it generates, so pods already using it keep
 running across the upgrade without restarting.
+
+## Migrating your values
+
+```yaml
+# before
+namespace: crusoe-system
+rbac:
+  create: true
+  serviceAccount:
+    name: my-rotator
+
+# after
+serviceAccount:
+  create: true
+  name: my-rotator
+# and install with: helm upgrade ... --namespace crusoe-system
+```
 
 ## Upgrading
 
