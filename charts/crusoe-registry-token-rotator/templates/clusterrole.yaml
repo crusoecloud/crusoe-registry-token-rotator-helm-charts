@@ -1,0 +1,29 @@
+{{/*
+A single ClusterRole holding the permission rules, so the policy is written once
+rather than copied into every target namespace. It is NOT bound cluster-wide: each
+target namespace gets its own RoleBinding, which confines these permissions to that
+namespace. See rolebinding.yaml.
+
+The name is qualified with the release namespace because ClusterRoles are global,
+so two releases of this chart sharing a release name would otherwise collide.
+
+"create" cannot be scoped by resourceNames, because the object does not exist when
+the request is authorized.
+*/}}
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}-{{ .Values.namespace }}
+  labels:
+    {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "update", "patch"]
+    resourceNames:
+      - {{ .Values.targetSecret.name | quote }}
+{{- end }}

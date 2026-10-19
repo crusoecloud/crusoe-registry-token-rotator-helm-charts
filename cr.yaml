@@ -3,3 +3,6 @@ pages-branch: gh-pages
 pages-index-path: charts/index.yaml
 skip-existing: true
 make-release-latest: true
+# Body of the GitHub release. Read from inside the packaged chart, so it lives in
+# the chart directory. Falls back to the chart description when the file is absent.
+release-notes-file: RELEASE.md

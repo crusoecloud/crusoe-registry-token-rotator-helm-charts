@@ -1,10 +1,20 @@
+{{/*
+One RoleBinding per target namespace, pointing at the shared ClusterRole. A
+RoleBinding that references a ClusterRole grants those permissions only inside the
+binding's own namespace, so the rotator's access stays limited to the namespaces
+listed in targetSecret.namespaces.
+
+The "-secrets" suffix matters: roleRef is immutable, so an existing RoleBinding
+cannot be repointed from a Role to a ClusterRole in place. Renaming makes Helm
+create the new binding and prune the old one instead of attempting a rejected patch.
+*/}}
 {{- if .Values.rbac.create }}
 {{- range $ns := .Values.targetSecret.namespaces }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $ns }}
+  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $ns }}-secrets
   namespace: {{ $ns }}
   labels:
     {{- include "crusoe-registry-token-rotator.labels" $ | nindent 4 }}
@@ -13,8 +23,8 @@ subjects:
     name: {{ include "crusoe-registry-token-rotator.serviceAccountName" $ }}
     namespace: {{ $.Values.namespace }}
 roleRef:
-  kind: Role
-  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $ns }}
+  kind: ClusterRole
+  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $.Values.namespace }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- end }}
