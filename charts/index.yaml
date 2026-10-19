@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   crusoe-registry-token-rotator:
   - apiVersion: v2
+    created: "2026-10-19T20:51:34.449485822Z"
+    description: A Helm chart for a CronJob that rotates Crusoe Registry tokens using
+      the API.
+    digest: 6d808c62d0497e4c85c8666cf1933191d3f1f806efbd05e05f40064993a2e1b4
+    name: crusoe-registry-token-rotator
+    type: application
+    urls:
+    - https://github.com/crusoecloud/crusoe-registry-token-rotator-helm-charts/releases/download/crusoe-registry-token-rotator-1.2.0/crusoe-registry-token-rotator-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     created: "2026-09-08T17:25:22.646627847Z"
     description: A Helm chart for a CronJob that rotates Crusoe Registry tokens using
       the API.
@@ -31,4 +41,4 @@ entries:
     urls:
     - https://github.com/crusoecloud/crusoe-registry-token-rotator-helm-charts/releases/download/crusoe-registry-token-rotator-1.0.0/crusoe-registry-token-rotator-1.0.0.tgz
     version: 1.0.0
-generated: "2026-09-08T17:25:22.646638172Z"
+generated: "2026-10-19T20:51:34.449502513Z"
