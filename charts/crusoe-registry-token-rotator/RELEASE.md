@@ -1,3 +1,5 @@
+<!-- chart-version: 1.3.0 -->
+
 ## What changed
 
 Three values are renamed. **The old names still work**, and still take precedence when set, but
