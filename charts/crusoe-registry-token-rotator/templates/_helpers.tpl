@@ -88,7 +88,11 @@ the deprecated rbac.serviceAccount.name overrides it when set.
 {{- $name = $legacy -}}
 {{- end -}}
 {{- if and (not (include "crusoe-registry-token-rotator.createRBAC" .)) (not $name) -}}
+{{- if not (kindIs "invalid" $rbac.create) -}}
+{{- fail "rbac.create (deprecated) is false, so the chart creates no ServiceAccount. Set serviceAccount.name to an existing account, or remove rbac.create. Note that rbac.create overrides serviceAccount.create, so setting serviceAccount.create to true on its own has no effect." -}}
+{{- else -}}
 {{- fail "serviceAccount.create is false, so the chart creates no ServiceAccount. Set serviceAccount.name to an existing account, or set serviceAccount.create to true." -}}
+{{- end -}}
 {{- end -}}
 {{- default (include "crusoe-registry-token-rotator.fullname" .) $name -}}
 {{- end }}
