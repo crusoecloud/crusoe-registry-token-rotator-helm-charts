@@ -51,11 +51,48 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Create the name of the service account to use
+Namespace the chart installs into. Always the release namespace. The deprecated
+.Values.namespace is honoured only when it agrees; when it disagrees we fail rather
+than relocate every object, which is what Helm would otherwise do on upgrade.
+*/}}
+{{- define "crusoe-registry-token-rotator.namespace" -}}
+{{- if and .Values.namespace (ne .Values.namespace .Release.Namespace) -}}
+{{- fail (printf "`namespace` is set to %q but the release namespace is %q. This key is deprecated and resources now install into the release namespace. Either drop it from your values and reinstall with `--namespace %s`, or set it to %q to confirm. Upgrading in place cannot move resources between namespaces." .Values.namespace .Release.Namespace .Values.namespace .Release.Namespace) -}}
+{{- end -}}
+{{- .Release.Namespace -}}
+{{- end }}
+
+{{/*
+Whether the chart creates the ServiceAccount, ClusterRole and RoleBindings.
+serviceAccount.create is canonical; the deprecated rbac.create overrides it when
+explicitly set. Returns "true" or the empty string, so callers can use `if include`.
+*/}}
+{{- define "crusoe-registry-token-rotator.createRBAC" -}}
+{{- $create := .Values.serviceAccount.create -}}
+{{- $rbac := .Values.rbac | default dict -}}
+{{- if not (kindIs "invalid" $rbac.create) -}}
+{{- $create = $rbac.create -}}
+{{- end -}}
+{{- if $create -}}true{{- end -}}
+{{- end }}
+
+{{/*
+Create the name of the service account to use. serviceAccount.name is canonical;
+the deprecated rbac.serviceAccount.name overrides it when set.
 */}}
 {{- define "crusoe-registry-token-rotator.serviceAccountName" -}}
-{{- if and (not .Values.rbac.create) (not .Values.rbac.serviceAccount.name) }}
-{{- fail "rbac.create is false, so the chart creates no ServiceAccount. Set rbac.serviceAccount.name to an existing account, or set rbac.create to true." }}
-{{- end }}
-{{- default (include "crusoe-registry-token-rotator.fullname" .) .Values.rbac.serviceAccount.name }}
+{{- $name := .Values.serviceAccount.name -}}
+{{- $rbac := .Values.rbac | default dict -}}
+{{- $legacy := ($rbac.serviceAccount | default dict).name -}}
+{{- if $legacy -}}
+{{- $name = $legacy -}}
+{{- end -}}
+{{- if and (not (include "crusoe-registry-token-rotator.createRBAC" .)) (not $name) -}}
+{{- if not (kindIs "invalid" $rbac.create) -}}
+{{- fail "rbac.create (deprecated) is false, so the chart creates no ServiceAccount. Set serviceAccount.name to an existing account, or remove rbac.create. Note that rbac.create overrides serviceAccount.create, so setting serviceAccount.create to true on its own has no effect." -}}
+{{- else -}}
+{{- fail "serviceAccount.create is false, so the chart creates no ServiceAccount. Set serviceAccount.name to an existing account, or set serviceAccount.create to true." -}}
+{{- end -}}
+{{- end -}}
+{{- default (include "crusoe-registry-token-rotator.fullname" .) $name -}}
 {{- end }}

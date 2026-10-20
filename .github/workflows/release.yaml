@@ -10,7 +10,44 @@ on:
       - '.github/workflows/release.yaml'
 
 jobs:
+  # The GitHub release body comes from RELEASE.md inside the packaged chart
+  # (cr.yaml: release-notes-file). Nothing otherwise stops a version bump from
+  # shipping the previous version's notes, so require the two to agree. The
+  # marker is an HTML comment and does not render in the release body.
+  verify-release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Chart version and release notes must agree
+        run: |
+          for chart in charts/*/; do
+            name=$(basename "$chart")
+            version=$(grep '^version:' "${chart}Chart.yaml" | awk '{print $2}')
+            notes="${chart}RELEASE.md"
+
+            if [ ! -f "$notes" ]; then
+              echo "::error::${name}: RELEASE.md is missing. The release body would fall back to the chart description."
+              exit 1
+            fi
+
+            declared=$(sed -n 's/^<!-- chart-version: \(.*\) -->$/\1/p' "$notes" | head -1)
+            if [ -z "$declared" ]; then
+              echo "::error::${name}: RELEASE.md has no '<!-- chart-version: X -->' marker on its first line."
+              exit 1
+            fi
+
+            if [ "$declared" != "$version" ]; then
+              echo "::error::${name}: Chart.yaml is ${version} but RELEASE.md declares ${declared}. Update the release notes for this version."
+              exit 1
+            fi
+
+            echo "${name}: ${version} notes OK"
+          done
+
   release:
+    needs: verify-release-notes
     runs-on: ubuntu-latest
     permissions:
       contents: write

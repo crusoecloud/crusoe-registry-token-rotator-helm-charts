@@ -8,7 +8,7 @@ The "-secrets" suffix matters: roleRef is immutable, so an existing RoleBinding
 cannot be repointed from a Role to a ClusterRole in place. Renaming makes Helm
 create the new binding and prune the old one instead of attempting a rejected patch.
 */}}
-{{- if .Values.rbac.create }}
+{{- if include "crusoe-registry-token-rotator.createRBAC" . }}
 {{- range $ns := .Values.targetSecret.namespaces }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -21,10 +21,10 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "crusoe-registry-token-rotator.serviceAccountName" $ }}
-    namespace: {{ $.Values.namespace }}
+    namespace: {{ include "crusoe-registry-token-rotator.namespace" $ }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ $.Values.namespace }}
+  name: {{ include "crusoe-registry-token-rotator.fullname" $ }}-{{ include "crusoe-registry-token-rotator.namespace" $ }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- end }}

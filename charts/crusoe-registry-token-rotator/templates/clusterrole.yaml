@@ -10,11 +10,11 @@ so two releases of this chart sharing a release name would otherwise collide.
 "create" cannot be scoped by resourceNames, because the object does not exist when
 the request is authorized.
 */}}
-{{- if .Values.rbac.create }}
+{{- if include "crusoe-registry-token-rotator.createRBAC" . }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "crusoe-registry-token-rotator.fullname" . }}-{{ .Values.namespace }}
+  name: {{ include "crusoe-registry-token-rotator.fullname" . }}-{{ include "crusoe-registry-token-rotator.namespace" . }}
   labels:
     {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
 rules:

@@ -143,9 +143,11 @@ All configuration is via `values.yaml`. Key options:
 |---------------------------------|------------------------------------------------------|-----------------------------------------------------|
 | `image.repository`              | Image repository for the registry token rotator app  | `ghcr.io/crusoecloud/crusoe-registry-token-rotator` |
 | `image.tag`                     | Image tag                                            | `latest`                                            |
-| `rbac.create`                   | Create the ServiceAccount, Roles and RoleBindings    | `true`                                              |
-| `rbac.serviceAccount.name`      | ServiceAccount name. If empty, derived from release  | `""`                                                |
-| `namespace`                     | Namespace where the CronJob will be created          | `crusoe-system`                                     |
+| `serviceAccount.create`         | Create the ServiceAccount, ClusterRole and RoleBindings | `true`                                           |
+| `serviceAccount.name`           | ServiceAccount name. If empty, derived from release  | `""`                                                |
+| `rbac.create`                   | Deprecated alias for `serviceAccount.create`         | unset                                               |
+| `rbac.serviceAccount.name`      | Deprecated alias for `serviceAccount.name`           | unset                                               |
+| `namespace`                     | Deprecated. Use `helm --namespace`                   | unset                                               |
 | `targetSecret.name`             | Name of the Kubernetes secret to manage              | `crusoe-image-pull-secrets`                         |
 | `targetSecret.namespaces`       | List of namespaces to update/create the secret in    | `default`                                            |
 | `targetSecret.registryUrl`      | Crusoe Registry URL for the secret                   |                                                     |
@@ -187,9 +189,31 @@ which would otherwise extend these permissions to every pod using that account.
 The `ClusterRole` is a cluster-scoped object, so installing the chart requires permission to create one. Its name
 includes the release namespace, so two releases of this chart can coexist in one cluster.
 
-Set `rbac.create: false` to manage RBAC yourself. The chart then creates no ServiceAccount, ClusterRole or
-RoleBinding, and you must set `rbac.serviceAccount.name` to an account you have already bound; rendering fails
-if you do not.
+Set `serviceAccount.create: false` to manage RBAC yourself. The chart then creates no ServiceAccount, ClusterRole
+or RoleBinding, and you must set `serviceAccount.name` to an account you have already bound; rendering fails if you
+do not.
+
+## Deprecated values
+
+Three keys are deprecated and will be removed in 2.0.0. They still take effect today, and override their
+replacements when set, but the chart prints a warning on install and upgrade.
+
+| Deprecated | Replacement |
+|------------|-------------|
+| `rbac.create` | `serviceAccount.create` |
+| `rbac.serviceAccount.name` | `serviceAccount.name` |
+| `namespace` | `helm install --namespace` |
+
+Resources now install into the release namespace rather than `.Values.namespace`. If you set `namespace` to
+something other than the namespace you pass to Helm, rendering fails with instructions instead of relocating your
+resources, because Helm cannot move objects between namespaces during an upgrade.
+
+If you install the way the Installation section describes, with `--namespace crusoe-system`, nothing changes for
+you and you can simply drop the key.
+
+If an earlier version installed your resources into `crusoe-system` while the Helm release itself lives in another
+namespace, the chart detects this on upgrade and stops with instructions. Helm cannot move objects between
+namespaces during an upgrade, so the release has to be reinstalled against whichever namespace you want to keep.
 
 ## Development
 

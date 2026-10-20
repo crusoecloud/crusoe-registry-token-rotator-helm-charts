@@ -7,11 +7,27 @@
 {{- if or (not .Values.targetSecret.registryUsername) (eq .Values.targetSecret.registryUsername "") }}
 {{ fail "You must set .Values.targetSecret.registryUsername to a non-empty value." }}
 {{- end }}
+{{/*
+Before 1.3.0 the chart installed into .Values.namespace, which defaulted to
+crusoe-system regardless of the namespace passed to Helm. Those installs cannot be
+upgraded in place: Helm will not move objects between namespaces, and the RoleBinding
+roleRef that points at the ClusterRole is immutable, so the upgrade fails with an
+opaque "cannot change roleRef" error. Detect it and explain instead.
+
+lookup returns nothing during `helm template` and client-side `--dry-run`, so this
+guard only engages on a real install or upgrade. That is the case that matters.
+*/}}
+{{- if ne .Release.Namespace "crusoe-system" }}
+{{- $prior := lookup "batch/v1" "CronJob" "crusoe-system" (include "crusoe-registry-token-rotator.fullname" .) }}
+{{- if $prior }}
+{{ fail (printf "A previous version of this release installed its resources into crusoe-system, but this release is in %q. Helm cannot move objects between namespaces during an upgrade. Either reinstall against the namespace the resources already live in (helm uninstall %s --namespace %s, then helm install %s --namespace crusoe-system), or remove the old release first and reinstall in %q. See the Deprecated values section of the README." .Release.Namespace .Release.Name .Release.Namespace .Release.Name .Release.Namespace) }}
+{{- end }}
+{{- end }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "crusoe-registry-token-rotator.fullname" . }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ include "crusoe-registry-token-rotator.namespace" . }}
   labels:
     {{- include "crusoe-registry-token-rotator.labels" . | nindent 4 }}
 spec:
