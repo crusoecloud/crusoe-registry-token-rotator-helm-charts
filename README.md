@@ -211,6 +211,10 @@ resources, because Helm cannot move objects between namespaces during an upgrade
 If you install the way the Installation section describes, with `--namespace crusoe-system`, nothing changes for
 you and you can simply drop the key.
 
+If an earlier version installed your resources into `crusoe-system` while the Helm release itself lives in another
+namespace, the chart detects this on upgrade and stops with instructions. Helm cannot move objects between
+namespaces during an upgrade, so the release has to be reinstalled against whichever namespace you want to keep.
+
 ## Development
 
 - Python dependencies are managed via `requirements.txt`
