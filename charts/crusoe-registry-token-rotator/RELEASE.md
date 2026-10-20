@@ -18,10 +18,17 @@ No Kubernetes object names change in this release.
 
 ## Before you upgrade
 
-If you set `namespace` to something different from the namespace you pass to Helm, **the upgrade
-will refuse to run** and print migration instructions. This is deliberate. Helm cannot move
-objects between namespaces during an upgrade, so proceeding would silently delete your resources
-and recreate them elsewhere.
+**The upgrade will refuse to run in two cases**, both to do with where your resources live. Helm
+cannot move objects between namespaces during an upgrade, so proceeding would delete them and
+recreate them elsewhere.
+
+1. You set `namespace` to something other than the namespace you pass to Helm.
+2. An earlier version placed your resources in `crusoe-system` while the Helm release itself lives
+   in a different namespace. This happens if you installed with `--namespace <something-else>`
+   without setting `namespace`, because it used to default to `crusoe-system` regardless.
+
+In both cases the chart stops and tells you how to proceed. The release is left untouched, so
+there is nothing to roll back.
 
 If you installed the documented way, with `--namespace crusoe-system`, nothing changes and you can
 simply drop the key from your values.
